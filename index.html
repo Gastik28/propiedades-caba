@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Propiedades CABA</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0f0d;--surface:#1a1a17;--surface2:#242420;--border:#2e2e29;--gold:#c9a96e;--gold-light:#e8c99a;--text:#f0ede6;--text-muted:#8a8778;--green:#4caf7d;--red:#e05c5c;--blue:#5b9bd5;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh;}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100;}
+header h1{font-family:'DM Serif Display',serif;font-size:20px;color:var(--gold);}
+.badge{background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);padding:3px 10px;border-radius:20px;font-size:12px;}
+.badge.active{color:var(--gold);border-color:var(--gold);}
+.header-right{margin-left:auto;display:flex;gap:8px;align-items:center;}
+.app{display:grid;grid-template-columns:270px 1fr;height:calc(100vh - 53px);}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;padding:18px 14px;display:flex;flex-direction:column;gap:18px;}
+.sidebar-section h3{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;}
+.csv-loader{border:1px dashed var(--border);border-radius:8px;padding:11px 13px;cursor:pointer;transition:all .2s;}
+.csv-loader:hover{border-color:var(--gold);background:rgba(201,169,110,.05);}
+.csv-loader.loaded{border-color:var(--green);border-style:solid;}
+.csv-loader-label{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;}
+.csv-dot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0;}
+.csv-dot.ml{background:#ffdb00;}.csv-dot.arg{background:#4fc3f7;}.csv-dot.zona{background:#81c784;}.csv-dot.cand{background:#c9a96e;}
+.csv-count{margin-left:auto;font-size:11px;color:var(--text-muted);}
+.csv-loader input{display:none;}
+.stats{background:var(--surface2);border-radius:8px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.stat-item{text-align:center;}
+.stat-num{font-family:'DM Serif Display',serif;font-size:20px;color:var(--gold);display:block;}
+.stat-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;}
+input[type=text],input[type=number],select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-family:inherit;font-size:13px;outline:none;transition:border-color .15s;}
+input:focus,select:focus{border-color:var(--gold);}
+.range-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.fl{font-size:11px;color:var(--text-muted);font-weight:500;letter-spacing:.05em;display:block;margin-bottom:4px;}
+.chips{display:flex;flex-wrap:wrap;gap:5px;}
+.chip{padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-size:11px;cursor:pointer;transition:all .15s;user-select:none;}
+.chip:hover{border-color:var(--gold);color:var(--gold);}
+.chip.active{background:var(--gold);border-color:var(--gold);color:#0f0f0d;font-weight:600;}
+.btn{padding:8px 14px;border-radius:6px;border:none;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:.04em;transition:all .15s;}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-muted);}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+.btn-sm{padding:6px 12px;font-size:11px;}
+.main{overflow-y:auto;padding:20px;}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60%;gap:14px;color:var(--text-muted);text-align:center;}
+.empty-icon{font-size:48px;opacity:.3;}
+.empty-state h2{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text-muted);}
+.zona-header{font-family:'DM Serif Display',serif;font-size:18px;color:var(--gold);padding:8px 0 12px;margin-top:8px;border-bottom:1px solid var(--border);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.zona-count{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text-muted);font-weight:400;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:24px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:all .2s;cursor:pointer;position:relative;}
+.card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.4);}
+.card-photo{height:195px;background:var(--surface2);position:relative;overflow:hidden;}
+.card-photo img{width:100%;height:100%;object-fit:cover;transition:transform .3s;}
+.card:hover .card-photo img{transform:scale(1.04);}
+.card-badges{position:absolute;top:8px;left:8px;display:flex;gap:4px;}
+.portal-badge{font-size:9px;font-weight:700;letter-spacing:.08em;padding:3px 7px;border-radius:4px;text-transform:uppercase;}
+.portal-badge.ml{background:#ffdb00;color:#000;}.portal-badge.argenprop{background:#0f4c81;color:#fff;}.portal-badge.zonaprop{background:#e63b2e;color:#fff;}.portal-badge.candidatos{background:rgba(201,169,110,.2);color:var(--gold);border:1px solid var(--gold);}.portal-badge.martinpinus{background:#1a1a17;color:#c9a96e;border:1px solid #c9a96e;}
+.orden-badge{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.7);color:var(--gold);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;backdrop-filter:blur(4px);}
+.fav-btn{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.5);border:none;font-size:15px;width:28px;height:28px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);transition:transform .15s;z-index:2;}
+.fav-btn:hover{transform:scale(1.2);}
+.photo-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text-muted);font-size:12px;gap:8px;}
+.ph-icon{font-size:30px;opacity:.25;}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.card-body{padding:13px 15px;}
+.card-price{font-family:'DM Serif Display',serif;font-size:21px;color:var(--gold);margin-bottom:4px;}
+.card-address{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-zona{font-size:11px;color:var(--text-muted);margin-bottom:9px;}
+.card-attrs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;}
+.attr-tag{background:var(--surface2);border:1px solid var(--border);padding:2px 7px;border-radius:4px;font-size:10px;color:var(--text-muted);}
+.attr-tag.hl{border-color:var(--gold);color:var(--gold-light);background:rgba(201,169,110,.08);}
+.estado-selector{display:flex;gap:4px;}
+.estado-btn{flex:1;padding:5px 4px;border:1px solid var(--border);background:transparent;color:var(--text-muted);border-radius:4px;font-size:10px;cursor:pointer;font-family:inherit;transition:all .15s;text-align:center;}
+.estado-btn:hover{border-color:var(--gold);color:var(--gold);}
+.estado-btn.af{background:rgba(201,169,110,.15);border-color:var(--gold);color:var(--gold);}
+.estado-btn.av{background:rgba(91,155,213,.15);border-color:var(--blue);color:var(--blue);}
+.estado-btn.ad{background:rgba(224,92,92,.15);border-color:var(--red);color:var(--red);}
+.card-status{position:absolute;bottom:0;left:0;right:0;height:3px;}
+.card-status.fav{background:var(--gold);}.card-status.visitada{background:var(--blue);}.card-status.descartada{background:var(--red);}
+.toast{position:fixed;bottom:22px;right:22px;background:var(--surface);border:1px solid var(--gold);color:var(--text);padding:11px 16px;border-radius:8px;font-size:13px;z-index:999;transform:translateY(70px);opacity:0;transition:all .3s;}
+.toast.show{transform:translateY(0);opacity:1;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>🏠 Propiedades CABA</h1>
+  <span class="badge" id="badge-total">Sin datos</span>
+  <span class="badge active" id="badge-filtrados" style="display:none"></span>
+  <div class="header-right">
+    <button class="btn btn-outline btn-sm" onclick="exportarFavoritos()">⭐ Exportar favoritos</button>
+    <button class="btn btn-outline btn-sm" onclick="limpiarFiltros()">Limpiar filtros</button>
+  </div>
+</header>
+<div class="app">
+<aside class="sidebar">
+  <div class="sidebar-section">
+    <h3>Cargar CSVs</h3>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <div class="csv-loader" id="loader-cand" onclick="document.getElementById('file-cand').click()">
+        <div class="csv-loader-label"><span class="csv-dot cand"></span><span>⭐ Candidatos (clientes)</span><span class="csv-count" id="count-cand">—</span></div>
+        <input type="file" id="file-cand" accept=".csv" onchange="cargarCSV(this,'candidatos')">
+      </div>
+      <div class="csv-loader" id="loader-ml" onclick="document.getElementById('file-ml').click()">
+        <div class="csv-loader-label"><span class="csv-dot ml"></span><span>MercadoLibre (todo)</span><span class="csv-count" id="count-ml">—</span></div>
+        <input type="file" id="file-ml" accept=".csv" onchange="cargarCSV(this,'ml')">
+      </div>
+      <div class="csv-loader" id="loader-arg" onclick="document.getElementById('file-arg').click()">
+        <div class="csv-loader-label"><span class="csv-dot arg"></span><span>Argenprop (todo)</span><span class="csv-count" id="count-arg">—</span></div>
+        <input type="file" id="file-arg" accept=".csv" onchange="cargarCSV(this,'argenprop')">
+      </div>
+      <div class="csv-loader" id="loader-zona" onclick="document.getElementById('file-zona').click()">
+        <div class="csv-loader-label"><span class="csv-dot zona"></span><span>Zonaprop (todo)</span><span class="csv-count" id="count-zona">—</span></div>
+        <input type="file" id="file-zona" accept=".csv" onchange="cargarCSV(this,'zonaprop')">
+      </div>
+    </div>
+  </div>
+  <div class="stats" id="stats-box" style="display:none">
+    <div class="stat-item"><span class="stat-num" id="stat-total">0</span><span class="stat-label">Total</span></div>
+    <div class="stat-item"><span class="stat-num" id="stat-favs">0</span><span class="stat-label">Favoritos</span></div>
+    <div class="stat-item"><span class="stat-num" id="stat-vis">0</span><span class="stat-label">Visitadas</span></div>
+    <div class="stat-item"><span class="stat-num" id="stat-des">0</span><span class="stat-label">Descartadas</span></div>
+  </div>
+  <div class="sidebar-section"><h3>Buscar</h3><input type="text" id="f-keyword" placeholder="Dirección, zona, atributo..." oninput="aplicarFiltros()"></div>
+  <div class="sidebar-section"><h3>Zonas</h3><div class="chips" id="zona-chips"></div></div>
+  <div class="sidebar-section">
+    <h3>Precio (USD)</h3>
+    <div class="range-row">
+      <div><label class="fl">Desde</label><input type="number" id="f-pmin" placeholder="0" oninput="aplicarFiltros()"></div>
+      <div><label class="fl">Hasta</label><input type="number" id="f-pmax" placeholder="1.200.000" oninput="aplicarFiltros()"></div>
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <h3>Estado</h3>
+    <div class="chips">
+      <span class="chip" data-estado="fav" onclick="toggleChip(this,'estado')">⭐ Favoritos</span>
+      <span class="chip" data-estado="visitada" onclick="toggleChip(this,'estado')">👁 Visitadas</span>
+      <span class="chip" data-estado="descartada" onclick="toggleChip(this,'estado')">✗ Descartadas</span>
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <h3>Portal</h3>
+    <div class="chips">
+      <span class="chip active" data-portal="candidatos" onclick="toggleChip(this,'portal')">★ Candidatos</span>
+      <span class="chip active" data-portal="ml" onclick="toggleChip(this,'portal')">ML</span>
+      <span class="chip active" data-portal="argenprop" onclick="toggleChip(this,'portal')">Argenprop</span>
+      <span class="chip active" data-portal="zonaprop" onclick="toggleChip(this,'portal')">Zonaprop</span>
+      <span class="chip active" data-portal="martinpinus" onclick="toggleChip(this,'portal')">M.Pinus</span>
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <h3>Ordenar</h3>
+    <select id="f-sort" onchange="aplicarFiltros()">
+      <option value="orden">Orden del Word ↑</option>
+      <option value="precio-asc">Precio ↑</option>
+      <option value="precio-desc">Precio ↓</option>
+      <option value="zona">Zona A-Z</option>
+    </select>
+  </div>
+</aside>
+<main class="main" id="main">
+  <div class="empty-state" id="empty-state">
+    <div class="empty-icon">🏠</div>
+    <h2>Cargá tus CSVs</h2>
+    <p style="color:var(--text-muted);max-width:280px;line-height:1.6">
+      Para clientes: cargá <strong style="color:var(--gold)">candidatos.csv</strong><br>
+      Para explorar todo: cargá los CSVs de los portales.
+    </p>
+  </div>
+  <div id="content"></div>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+let todas=[],filtradas=[];
+let estados=JSON.parse(localStorage.getItem('prop-estados')||'{}');
+let portalesActivos=new Set(['ml','argenprop','zonaprop','candidatos','martinpinus']);
+let estadosFiltro=new Set(),zonasFiltro=new Set();
+const fotoCache={};
+const observer=new IntersectionObserver(onVisible,{rootMargin:'300px'});
+
+async function cargarCSV(input,portal){
+  const file=input.files[0]; if(!file)return;
+  const texto=await file.text();
+  try{
+    const resp=await fetch('/api/parse-csv',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({csv:texto,portal})});
+    const data=await resp.json();
+    todas=todas.filter(p=>p.portal!==portal);
+    todas=[...todas,...data.propiedades];
+    const lm={ml:'ml',argenprop:'arg',zonaprop:'zona',candidatos:'cand'};
+    const lid=lm[portal]||'ml';
+    document.getElementById('loader-'+lid)?.classList.add('loaded');
+    const cel=document.getElementById('count-'+lid);
+    if(cel)cel.textContent=data.total;
+    actualizarZonas();aplicarFiltros();mostrarStats();
+    document.getElementById('stats-box').style.display='grid';
+    document.getElementById('empty-state').style.display='none';
+    mostrarToast(`✅ ${data.total} propiedades cargadas`);
+  }catch(e){mostrarToast('❌ Error al cargar CSV');console.error(e);}
+}
+
+function toggleChip(chip,tipo){
+  if(tipo==='zona'){const z=chip.dataset.zona;zonasFiltro.has(z)?zonasFiltro.delete(z):zonasFiltro.add(z);chip.classList.toggle('active');}
+  else if(tipo==='portal'){const p=chip.dataset.portal;if(portalesActivos.has(p)&&portalesActivos.size>1){portalesActivos.delete(p);chip.classList.remove('active');}else if(!portalesActivos.has(p)){portalesActivos.add(p);chip.classList.add('active');}}
+  else if(tipo==='estado'){const e=chip.dataset.estado;estadosFiltro.has(e)?estadosFiltro.delete(e):estadosFiltro.add(e);chip.classList.toggle('active');}
+  aplicarFiltros();
+}
+
+function actualizarZonas(){
+  const zonas=[...new Set(todas.map(p=>p.zona).filter(Boolean))].sort();
+  const c=document.getElementById('zona-chips');
+  const existentes=new Set([...c.querySelectorAll('.chip')].map(x=>x.dataset.zona));
+  zonas.forEach(z=>{if(!existentes.has(z)){const chip=document.createElement('span');chip.className='chip';chip.dataset.zona=z;chip.textContent=z;chip.onclick=()=>toggleChip(chip,'zona');c.appendChild(chip);}});
+}
+
+function aplicarFiltros(){
+  const kw=document.getElementById('f-keyword').value.toLowerCase();
+  const pmin=parseInt(document.getElementById('f-pmin').value)||0;
+  const pmax=parseInt(document.getElementById('f-pmax').value)||Infinity;
+  const sort=document.getElementById('f-sort').value;
+  filtradas=todas.filter(p=>{
+    if(!portalesActivos.has(p.portal))return false;
+    if(zonasFiltro.size>0&&!zonasFiltro.has(p.zona))return false;
+    if(p.precio_num>0&&(p.precio_num<pmin||p.precio_num>pmax))return false;
+    if(estadosFiltro.size>0&&!estadosFiltro.has(estados[p.id]||'normal'))return false;
+    if(kw){const txt=[p.titulo,p.direccion,p.zona,p.atributos].join(' ').toLowerCase();if(!kw.split(' ').filter(Boolean).every(t=>txt.includes(t)))return false;}
+    return true;
+  });
+  filtradas.sort((a,b)=>{
+    if(sort==='precio-asc')return a.precio_num-b.precio_num;
+    if(sort==='precio-desc')return b.precio_num-a.precio_num;
+    if(sort==='zona')return a.zona.localeCompare(b.zona);
+    return(a.orden||9999)-(b.orden||9999);
+  });
+  renderContent();actualizarBadges();
+}
+
+function limpiarFiltros(){
+  document.getElementById('f-keyword').value='';
+  document.getElementById('f-pmin').value='';
+  document.getElementById('f-pmax').value='';
+  zonasFiltro.clear();estadosFiltro.clear();
+  portalesActivos=new Set(['ml','argenprop','zonaprop','candidatos','martinpinus']);
+  document.querySelectorAll('.chip').forEach(c=>{if(c.dataset.portal)c.classList.add('active');else c.classList.remove('active');});
+  aplicarFiltros();
+}
+
+function renderContent(){
+  const content=document.getElementById('content');content.innerHTML='';
+  if(!filtradas.length)return;
+  const porZona={};
+  filtradas.forEach(p=>{const z=p.zona||'Sin zona';if(!porZona[z])porZona[z]=[];porZona[z].push(p);});
+  Object.entries(porZona).forEach(([zona,props])=>{
+    const h=document.createElement('div');h.className='zona-header';
+    h.innerHTML=`${zona} <span class="zona-count">${props.length} propiedad${props.length!==1?'es':''}</span>`;
+    content.appendChild(h);
+    const grid=document.createElement('div');grid.className='grid';
+    props.forEach(p=>grid.appendChild(crearCard(p)));
+    content.appendChild(grid);
+  });
+}
+
+function pClass(portal){return portal==='ml'?'ml':portal==='argenprop'?'argenprop':portal==='martinpinus'?'martinpinus':portal==='candidatos'?'candidatos':'zonaprop';}
+function pLabel(portal){return portal==='ml'?'ML':portal==='argenprop'?'Argenprop':portal==='martinpinus'?'M.Pinus':portal==='candidatos'?'★ Candidato':'Zonaprop';}
+
+function crearCard(prop){
+  const div=document.createElement('div');div.className='card';div.dataset.id=prop.id;div.dataset.link=prop.link||'';
+  const estado=estados[prop.id]||'normal';
+  const pFmt=prop.precio_num>0?'USD '+prop.precio_num.toLocaleString('es-AR'):(prop.precio_usd||'Consultar');
+  const attrsList=(prop.atributos||'').split('|').map(a=>a.trim()).filter(Boolean).slice(0,5);
+  const hl=['suite','cochera','pileta','dep','vestidor','terraza','parrilla','sauna'];
+  const attrsHTML=attrsList.map(a=>`<span class="attr-tag ${hl.some(h=>a.toLowerCase().includes(h))?'hl':''}">${a}</span>`).join('');
+  div.innerHTML=`
+    <div class="card-photo" id="photo-${prop.id}">
+      <div class="photo-placeholder"><div class="spinner"></div></div>
+      <div class="card-badges"><span class="portal-badge ${pClass(prop.portal)}">${pLabel(prop.portal)}</span></div>
+      ${prop.orden?`<div class="orden-badge">#${prop.orden}</div>`:''}
+      <button class="fav-btn" onclick="toggleFav(event,'${prop.id}')">${estado==='fav'?'⭐':'☆'}</button>
+    </div>
+    <div class="card-body">
+      <div class="card-price">${pFmt}</div>
+      <div class="card-address">${prop.direccion||prop.titulo||'Sin dirección'}</div>
+      <div class="card-zona">${prop.zona||''}${prop.m2>0?' · '+prop.m2+'m²':''}</div>
+      ${attrsHTML?`<div class="card-attrs">${attrsHTML}</div>`:''}
+      <div class="estado-selector">
+        <button class="estado-btn ${estado==='fav'?'af':''}" onclick="setEstado(event,'${prop.id}','fav')">⭐ Fav</button>
+        <button class="estado-btn ${estado==='visitada'?'av':''}" onclick="setEstado(event,'${prop.id}','visitada')">👁 Vista</button>
+        <button class="estado-btn ${estado==='descartada'?'ad':''}" onclick="setEstado(event,'${prop.id}','descartada')">✗ Desc.</button>
+      </div>
+    </div>
+    <div class="card-status ${estado!=='normal'?estado:''}"></div>`;
+  div.addEventListener('click',e=>{if(e.target.closest('button'))return;if(prop.link)window.open(prop.link,'_blank');});
+  observer.observe(div.querySelector('.card-photo'));
+  return div;
+}
+
+function onVisible(entries){
+  entries.forEach(entry=>{
+    if(!entry.isIntersecting)return;
+    const d=entry.target;const card=d.closest('.card');if(!card)return;
+    const id=card.dataset.id;const link=card.dataset.link;
+    observer.unobserve(d);
+    if(!link||link==='Sin link'){mostrarPlaceholder(id);return;}
+    if(fotoCache[id]!==undefined){fotoCache[id]?mostrarFoto(id,fotoCache[id]):mostrarPlaceholder(id);return;}
+    fetch(`/api/foto?url=${encodeURIComponent(link)}`)
+      .then(r=>r.json())
+      .then(data=>{fotoCache[id]=data.foto||'';data.foto?mostrarFoto(id,data.foto):mostrarPlaceholder(id);})
+      .catch(()=>{fotoCache[id]='';mostrarPlaceholder(id);});
+  });
+}
+
+function mostrarFoto(id,src){
+  const d=document.getElementById(`photo-${id}`);if(!d)return;
+  const prop=todas.find(p=>p.id===id);const estado=estados[id]||'normal';
+  d.innerHTML=`<img src="${src}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'photo-placeholder\\'><span class=\\'ph-icon\\'>🏠</span><span>Sin foto</span></div>'">
+    <div class="card-badges"><span class="portal-badge ${pClass(prop?.portal||'')}"">${pLabel(prop?.portal||'')}</span></div>
+    ${prop?.orden?`<div class="orden-badge">#${prop.orden}</div>`:''}
+    <button class="fav-btn" onclick="toggleFav(event,'${id}')">${estado==='fav'?'⭐':'☆'}</button>`;
+}
+
+function mostrarPlaceholder(id){
+  const d=document.getElementById(`photo-${id}`);if(!d)return;
+  const estado=estados[id]||'normal';
+  d.innerHTML=`<div class="photo-placeholder"><span class="ph-icon">🏠</span><span>Sin foto</span></div>
+    <button class="fav-btn" onclick="toggleFav(event,'${id}')">${estado==='fav'?'⭐':'☆'}</button>`;
+}
+
+function toggleFav(e,id){e.stopPropagation();const a=estados[id]||'normal';setEstado(e,id,a==='fav'?'normal':'fav');}
+function setEstado(e,id,nuevo){
+  e.stopPropagation();estados[id]=(estados[id]===nuevo)?'normal':nuevo;
+  localStorage.setItem('prop-estados',JSON.stringify(estados));
+  const prop=todas.find(p=>p.id===id);if(!prop)return;
+  const old=document.querySelector(`[data-id="${id}"]`);
+  if(old){const nc=crearCard(prop);old.replaceWith(nc);if(fotoCache[id])mostrarFoto(id,fotoCache[id]);else if(fotoCache[id]==='')mostrarPlaceholder(id);}
+  mostrarStats();
+}
+
+function actualizarBadges(){
+  document.getElementById('badge-total').textContent=`${todas.length} propiedades`;
+  const bf=document.getElementById('badge-filtrados');
+  if(filtradas.length<todas.length){bf.textContent=`${filtradas.length} mostradas`;bf.style.display='inline';}
+  else bf.style.display='none';
+}
+
+function mostrarStats(){
+  document.getElementById('stat-total').textContent=todas.length;
+  document.getElementById('stat-favs').textContent=Object.values(estados).filter(e=>e==='fav').length;
+  document.getElementById('stat-vis').textContent=Object.values(estados).filter(e=>e==='visitada').length;
+  document.getElementById('stat-des').textContent=Object.values(estados).filter(e=>e==='descartada').length;
+}
+
+function exportarFavoritos(){
+  const favs=todas.filter(p=>estados[p.id]==='fav');
+  if(!favs.length){mostrarToast('No hay favoritos');return;}
+  const h=['zona','precio_usd','direccion','portal','link'];
+  const csv=[h.join(','),...favs.map(p=>h.map(k=>`"${(p[k]||'').toString().replace(/"/g,'""')}"`).join(','))].join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='favoritos.csv';a.click();mostrarToast(`✅ ${favs.length} favoritos exportados`);
+}
+
+let toastTO;
+function mostrarToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTO);toastTO=setTimeout(()=>t.classList.remove('show'),3000);}
+</script>
+</body>
+</html>
